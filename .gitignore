@@ -1,0 +1,10 @@
+bin/
+/gpusched
+*.test
+*.out
+coverage.*
+# simulation artifacts
+results/
+*.csv
+*.png
+.DS_Store
