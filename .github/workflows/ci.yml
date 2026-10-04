@@ -6,13 +6,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Pinned rather than ubuntu-latest: reproducible runner, no migration notices.
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26'
-          cache: true
+          # No third-party deps, so no go.sum to key a cache on. Re-enable once one exists.
+          cache: false
       - run: go build ./...
       - run: go vet ./...
       - run: go test -race -count=1 ./...
