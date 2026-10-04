@@ -114,6 +114,38 @@ Run everything in Docker: `./scripts/start.sh` (build + start dev container),
 `./scripts/stop.sh` (stop + remove). Source is bind-mounted, so edits on the host are
 live in the container. Shell in with `docker exec -it gpuscheduler-dev sh`.
 
+## Goals (the commitment; each needs a "done when" to be met)
+
+These five goals define what the project must demonstrate. Judge scope questions
+against them: work that serves a goal comes first.
+
+1. **Gang scheduling.** All-or-nothing placement.
+   *Done when:* tests show a job is never running with fewer GPUs than its gang size, a
+   job that doesn't fit waits rather than partially starting, and a rejected `Allocate`
+   leaves the cluster unchanged.
+2. **A fragmentation metric.**
+   *Done when:* the starter metric (free GPUs not on a fully-free node) is implemented
+   and tested, sampled over time in the sim, and the README explains where it fails,
+   ideally with one better definition implemented beside it for comparison.
+3. **First-fit vs best-fit vs topology-aware on the same job trace.**
+   *Done when:* all three policies run on identical seeded traces, and a results table
+   reports utilization, avg/p95 wait, fragmentation, and nodes/racks spanned, as means
+   over N seeds with confidence intervals. Every number comes from a real run.
+4. **Preemption with a checkpoint/restart cost.**
+   *Done when:* a preempted job loses the work since its last checkpoint and pays a
+   restart cost; it is requeued as the same job with its progress kept; victim selection
+   minimizes lost work while freeing enough GPUs in a usable shape; and a measurement
+   shows the trade-off (high-priority wait saved vs GPU-hours lost).
+5. **A small HTTP API.**
+   *Done when:* there are endpoints to submit a job, get a job's status, and get cluster
+   state and fragmentation, as a thin layer over the same scheduler core the sim uses
+   (no scheduling logic in handlers), with a curl walkthrough in the README.
+   *Open question:* the sim runs in virtual time; the API needs either a live wall-clock
+   mode or a "step the sim" endpoint. Decide this before building it.
+
+Goal-to-phase map: 1 → Phase 0/1, 2 → Phase 0 then 2, 3 → Phases 1–2, 4 → Phase 3,
+5 → Phase 6.
+
 ## Build plan (the human drives; Claude advises per phase)
 
 - **Phase 0** — packages, `go test ./...`, CI green.
@@ -122,7 +154,7 @@ live in the container. Shell in with `docker exec -it gpuscheduler-dev sh`.
 - **Phase 3** — preemption coupled to checkpoint cost; minimal victim set.
 - **Phase 4** — teams, quotas, DRF / hierarchical fair-share.
 - **Phase 5** — EASY backfill with reservation for the head-of-line job.
-- **Phase 6** — metrics dashboard, README with plots, write-up.
+- **Phase 6** — small HTTP API (goal 5), metrics dashboard, README with plots, write-up.
 
 Each phase deliverable is a *measurement*, not just working code. "Topology-aware cut
 fragmentation from X to Y over N runs" is the interview payload.

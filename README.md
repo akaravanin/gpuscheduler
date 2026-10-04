@@ -16,6 +16,24 @@ across the cluster, because inter-node and inter-rack communication dominates st
 So this is topology-aware bin-packing under all-or-nothing constraints, with priorities
 and fairness — NP-hard in general, hence heuristics, hence a simulator to measure them.
 
+## Goals
+
+The project is done when it demonstrates these five things, each backed by tests or a
+measured result:
+
+1. **Gang scheduling.** A job starts with all of its GPUs or none of them. It is never
+   partially placed.
+2. **A fragmentation metric.** A defined, implemented measure of free GPUs that are
+   unusable for the queued work, tracked over time, with a write-up of what it misses.
+3. **First-fit vs best-fit vs topology-aware packing on the same job trace.** One seeded
+   workload, three policies, compared on utilization, wait time, fragmentation and
+   placement locality, reported as means over multiple seeds with confidence intervals.
+4. **Preemption with a checkpoint/restart cost.** Higher-priority work can evict running
+   jobs. Evicted jobs lose the work done since their last checkpoint and pay a restart
+   cost, and the scheduler picks victims to keep that loss small.
+5. **A small HTTP API.** Submit a job, check its status, and inspect cluster state and
+   fragmentation over HTTP.
+
 ## Quick start
 
 ```sh
@@ -45,7 +63,8 @@ area — read those before writing the package.
 
 ## Status
 
-Scaffolding only. No Go written yet; `cmd/gpusched/main.go` is the first thing to write.
+Phase 0 in progress. The `cluster` topology model and its tests exist; the allocation
+methods are still being implemented. `job`, `schedule` and `sim` are empty.
 See `CLAUDE.md` for the build plan and the working agreement (short version: the human
 writes all Go here; Claude designs, reviews, and stays out of the source).
 
